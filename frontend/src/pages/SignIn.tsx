@@ -4,12 +4,7 @@ import type { FormEvent } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { getApiErrorMessage } from "../api";
-
-interface SignInForm {
-  name: string;
-  email: string;
-  password: string;
-}
+import type { SignInForm } from "../interfaces/auth";
 
 export default function SignIn() {
   const { user, signIn, ready } = useAuth();

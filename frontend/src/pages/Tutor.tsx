@@ -5,7 +5,10 @@ import { useSearchParams } from "react-router-dom";
 import api, { getApiErrorMessage } from "../api";
 import { useCurrentUser } from "../auth/AuthContext";
 import Notice from "../components/Notice";
-import type { AiIntent, ChatMessage, Course, CourseListResponse } from "../types";
+import type { AiIntent } from "../types/ai";
+import type { ChatMessage } from "../interfaces/ai";
+import type { Course } from "../interfaces/course";
+import type { CourseListResponse } from "../interfaces/api";
 
 export default function Tutor() {
   const user = useCurrentUser();

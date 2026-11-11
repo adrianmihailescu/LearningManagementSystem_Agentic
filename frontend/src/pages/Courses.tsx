@@ -4,7 +4,8 @@ import api, { getApiErrorMessage } from "../api";
 import CourseCard from "../components/CourseCard";
 import Notice from "../components/Notice";
 import { useCurrentUser } from "../auth/AuthContext";
-import type { Course, CourseListResponse } from "../types";
+import type { Course } from "../interfaces/course";
+import type { CourseListResponse } from "../interfaces/api";
 
 const categories = ["All courses", "Data Science", "Web Development", "Design", "Computer Science", "Cloud Computing"] as const;
 export default function Courses() {

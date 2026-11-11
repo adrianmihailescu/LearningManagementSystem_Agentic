@@ -4,33 +4,13 @@ import type { FormEvent } from "react";
 import api, { getApiErrorMessage } from "../api";
 import { useCurrentUser } from "../auth/AuthContext";
 import Notice from "../components/Notice";
-import type {
-  Course,
-  CourseCreateInput,
-  CourseLevel,
-  CourseListResponse,
-  SubmissionRecord,
-  UserListResponse,
-  UserRecord,
-  UserRole,
-} from "../types";
-
-interface ManageForm {
-  title: string;
-  description: string;
-  category: string;
-  level: CourseLevel;
-  tags: string;
-  moduleTitle: string;
-  lessonTitle: string;
-  lessonContent: string;
-  quizPrompt: string;
-  quizOptions: string;
-  quizAnswer: string;
-  quizExplanation: string;
-  assignmentTitle: string;
-  assignmentInstructions: string;
-}
+import type { UserRecord } from "../interfaces/auth";
+import type { UserRole } from "../types/auth";
+import type { Course, CourseCreateInput } from "../interfaces/course";
+import type { CourseLevel } from "../types/course";
+import type { SubmissionRecord } from "../interfaces/enrollment";
+import type { CourseListResponse, UserListResponse } from "../interfaces/api";
+import type { ManageForm } from "../interfaces/forms";
 
 const initialForm: ManageForm = {
   title: "", description: "", category: "Data Science", level: "Beginner", tags: "",

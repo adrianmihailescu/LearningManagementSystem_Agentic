@@ -1,20 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import api from "../api";
-import type { AuthenticatedUser } from "../types";
-
-interface SignInCredentials {
-  name?: string;
-  email: string;
-  password: string;
-}
-
-interface AuthContextValue {
-  user: AuthenticatedUser | null;
-  ready: boolean;
-  signIn: (credentials: SignInCredentials, register?: boolean) => Promise<void>;
-  signOut: () => void;
-}
+import type { AuthContextValue, AuthenticatedUser, SignInCredentials } from "../interfaces/auth";
+import type { CurrentUserResponse, SignInResponse } from "../interfaces/api";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -25,14 +13,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = localStorage.getItem("smartlearning-token");
     if (!token) { setReady(true); return; }
-    api.get<{ user: AuthenticatedUser }>("/auth/me")
+    api.get<CurrentUserResponse>("/auth/me")
       .then(({ data }) => setUser(data.user))
       .catch(() => localStorage.removeItem("smartlearning-token"))
       .finally(() => setReady(true));
   }, []);
 
   async function signIn(credentials: SignInCredentials, register = false) {
-    const { data } = await api.post<{ token: string; user: AuthenticatedUser }>(
+    const { data } = await api.post<SignInResponse>(
       register ? "/auth/register" : "/auth/login",
       credentials,
     );

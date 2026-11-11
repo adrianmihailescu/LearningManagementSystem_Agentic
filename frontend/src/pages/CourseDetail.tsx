@@ -5,15 +5,9 @@ import type { FormEvent } from "react";
 import api, { getApiErrorMessage } from "../api";
 import Notice from "../components/Notice";
 import { useCurrentUser } from "../auth/AuthContext";
-import type {
-  Assignment,
-  AssignmentSubmission,
-  CourseDetail,
-  CourseDetailResponse,
-  CourseModule,
-  LearnerEnrollment,
-  QuizSubmissionResult,
-} from "../types";
+import type { Assignment, CourseDetail, CourseModule } from "../interfaces/course";
+import type { AssignmentSubmission, LearnerEnrollment } from "../interfaces/enrollment";
+import type { CourseDetailResponse, QuizSubmissionResult } from "../interfaces/api";
 
 export default function CourseDetail() {
   const user = useCurrentUser();

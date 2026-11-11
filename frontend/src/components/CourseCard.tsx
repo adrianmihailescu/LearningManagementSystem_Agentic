@@ -1,7 +1,8 @@
 import type { CSSProperties } from "react";
 import { ArrowUpRight, Clock3, Play, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { Course } from "../types";
+import type { Course } from "../interfaces/course";
+import type { CourseCardProps } from "../interfaces/components";
 
 const artwork: Record<string, { symbol: string; label: string; gradient: string }> = {
   "Data Science": { symbol: "✳", label: "THINK IN PATTERNS", gradient: "art-data" },
@@ -10,13 +11,6 @@ const artwork: Record<string, { symbol: string; label: string; gradient: string 
   "Computer Science": { symbol: "⌘", label: "IDEAS INTO ALGORITHMS", gradient: "art-computer" },
   "Cloud Computing": { symbol: "☁", label: "SCALE WHAT YOU BUILD", gradient: "art-cloud" },
 };
-
-interface CourseCardProps {
-  course: Course;
-  progress?: number;
-  onEnroll?: (course: Course) => void;
-  canEnroll?: boolean;
-}
 
 export default function CourseCard({ course, progress, onEnroll, canEnroll = true }: CourseCardProps) {
   const art = artwork[course.category] || artwork["Data Science"];

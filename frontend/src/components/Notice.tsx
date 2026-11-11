@@ -1,9 +1,5 @@
 import { X } from "lucide-react";
-
-interface NoticeProps {
-  message: string;
-  onClose: () => void;
-}
+import type { NoticeProps } from "../interfaces/components";
 
 export default function Notice({ message, onClose }: NoticeProps) {
   if (!message) return null;

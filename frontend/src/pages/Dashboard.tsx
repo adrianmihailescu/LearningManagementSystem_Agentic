@@ -5,7 +5,8 @@ import api, { getApiErrorMessage } from "../api";
 import { useCurrentUser } from "../auth/AuthContext";
 import CourseCard from "../components/CourseCard";
 import Notice from "../components/Notice";
-import type { Course, CourseListResponse } from "../types";
+import type { Course } from "../interfaces/course";
+import type { CourseListResponse } from "../interfaces/api";
 
 export default function Dashboard() {
   const user = useCurrentUser();
