@@ -11,7 +11,8 @@ import Manage from "./pages/Manage";
 
 function Protected({ children }: { children: ReactNode }) {
   const { user, ready } = useAuth();
-  if (!ready) return <div className="loading-screen">Preparing your learning space…</div>;
+  if (!ready)
+    return <div className="loading-screen">Preparing your learning space…</div>;
   return user ? children : <Navigate to="/signin" replace />;
 }
 

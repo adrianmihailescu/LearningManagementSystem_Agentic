@@ -6,7 +6,8 @@ import { AuthProvider } from "./auth/AuthContext";
 import "./styles.css";
 
 const rootElement = document.getElementById("root");
-if (!rootElement) throw new Error("The app root element was not found.");
+if (!rootElement)
+  throw new Error("The app root element was not found.");
 
 ReactDOM.createRoot(rootElement).render(
   <StrictMode>

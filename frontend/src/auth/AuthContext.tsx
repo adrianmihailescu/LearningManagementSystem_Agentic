@@ -12,7 +12,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const token = localStorage.getItem("smartlearning-token");
-    if (!token) { setReady(true); return; }
+    if (!token) {
+      setReady(true);
+      return;
+    }
     api.get<CurrentUserResponse>("/auth/me")
       .then(({ data }) => setUser(data.user))
       .catch(() => localStorage.removeItem("smartlearning-token"))
@@ -36,12 +39,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 export function useAuth() {
   const value = useContext(AuthContext);
-  if (!value) throw new Error("useAuth must be used within AuthProvider.");
+  if (!value)
+    throw new Error("useAuth must be used within AuthProvider.");
   return value;
 }
 
 export function useCurrentUser(): AuthenticatedUser {
   const { user } = useAuth();
-  if (!user) throw new Error("An authenticated user is required.");
+  if (!user)
+    throw new Error("An authenticated user is required.");
   return user;
 }
