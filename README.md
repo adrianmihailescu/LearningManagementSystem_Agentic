@@ -11,8 +11,8 @@ SmartLearning is a role-aware learning management system with a React client, a 
 
 ## Run locally
 
-1. Start MongoDB: `docker compose up -d mongodb`
-2. Copy `backend/.env.example` to `backend/.env` and set `JWT_SECRET`. Add an AI key to enable AI tools.
+1. Make MongoDB available at `mongodb://localhost:27017`. If MongoDB isn't already running locally, start the included container with `docker compose up -d mongodb`.
+2. Copy `backend/.env.example` to `backend/.env`; set `JWT_SECRET` to a random secret of at least 32 characters. The configured database is `smartlearning` (`mongodb://localhost:27017/smartlearning`). Add an AI key to enable AI tools.
 3. From the repository root, run `npm install` and then `npm run install:all`.
 4. Seed sample courses and demo accounts: `npm run seed`
 5. Start the API and frontend: `npm run dev`
@@ -41,3 +41,6 @@ The API listens on port 4000. AI endpoints return an explicit service-unavailabl
 - `docs/` describes architecture, data, and API contracts.
 
 See [architecture](docs/architecture.md), [database design](docs/database-design.md), and [API specification](docs/api-specification.md).
+
+![alt text](images/image.png)
+![alt text](images/image-1.png)
