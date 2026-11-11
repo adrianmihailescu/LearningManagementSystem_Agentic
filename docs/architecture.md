@@ -2,7 +2,7 @@
 
 ## Application layers
 
-- **React + Vite (`frontend/`)** renders the role-aware LMS, course catalog, lesson room, quiz interface, and tutor.
+- **React + TypeScript + Vite (`frontend/`)** renders the role-aware LMS, course catalog, lesson room, quiz interface, and tutor. Production builds run the TypeScript compiler before bundling.
 - **Express (`backend/`)** provides JSON APIs, validates requests, authenticates JWT sessions, and enforces role and ownership policies.
 - **MongoDB + Mongoose** persists users, course structures, enrollments, lesson completion, and quiz attempts.
 - **Runtime AI (`backend/src/agents`, `backend/src/ai`)** selects a specialist prompt and calls the configured OpenAI or Gemini provider. It is separate from the workspace-only `.github/agents` personas.

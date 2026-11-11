@@ -37,6 +37,7 @@ The API listens on port 4000. AI endpoints return an explicit service-unavailabl
 - `.github/agents/` contains development-time Copilot agents.
 - `backend/src/agents/` and `backend/src/ai/` contain production runtime agent behavior.
 - `frontend/` contains the React application.
+- Frontend React components, pages, auth, and API client use TypeScript (`.tsx`/`.ts`); `npm run build` type-checks before bundling.
 - `docs/` describes architecture, data, and API contracts.
 
 See [architecture](docs/architecture.md), [database design](docs/database-design.md), and [API specification](docs/api-specification.md).

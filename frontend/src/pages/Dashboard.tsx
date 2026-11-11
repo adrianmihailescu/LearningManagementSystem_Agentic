@@ -1,32 +1,36 @@
 import { ArrowRight, BookOpen, Clock3, Sparkles, Target, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import api from "../api.js";
-import { useAuth } from "../auth/AuthContext.jsx";
-import CourseCard from "../components/CourseCard.jsx";
-import Notice from "../components/Notice.jsx";
+import api, { getApiErrorMessage } from "../api";
+import { useCurrentUser } from "../auth/AuthContext";
+import CourseCard from "../components/CourseCard";
+import Notice from "../components/Notice";
+import type { Course, CourseListResponse } from "../types";
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const [courses, setCourses] = useState([]);
-  const [catalog, setCatalog] = useState([]);
+  const user = useCurrentUser();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [catalog, setCatalog] = useState<Course[]>([]);
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([api.get("/courses/mine"), api.get("/courses")])
+    Promise.all([
+      api.get<CourseListResponse>("/courses/mine"),
+      api.get<CourseListResponse>("/courses"),
+    ])
       .then(([mine, all]) => { setCourses(mine.data.courses); setCatalog(all.data.courses); })
-      .catch((error) => setNotice(error.response?.data?.error || "Could not load your learning dashboard."))
+      .catch((error: unknown) => setNotice(getApiErrorMessage(error, "Could not load your learning dashboard.")))
       .finally(() => setLoading(false));
   }, []);
 
-  async function enroll(course) {
+  async function enroll(course: Course) {
     try {
       await api.post(`/courses/${course._id}/enroll`);
       setNotice("");
-      const { data } = await api.get("/courses/mine");
+      const { data } = await api.get<CourseListResponse>("/courses/mine");
       setCourses(data.courses);
-    } catch (error) { setNotice(error.response?.data?.error || "Could not enroll in this course."); }
+    } catch (error: unknown) { setNotice(getApiErrorMessage(error, "Could not enroll in this course.")); }
   }
 
   return <div className="dashboard-page">

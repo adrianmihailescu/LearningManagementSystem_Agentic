@@ -1,16 +1,18 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { BookOpen, Compass, GraduationCap, LayoutDashboard, LogOut, Menu, MessageCircle, Settings, X } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "../auth/AuthContext.jsx";
+import type { LucideIcon } from "lucide-react";
+import { useAuth, useCurrentUser } from "../auth/AuthContext";
 
 export default function Shell() {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
+  const user = useCurrentUser();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const links = [
+  const links: Array<{ to: string; label: string; icon: LucideIcon; end?: boolean }> = [
     { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
     { to: "/courses", label: "My courses", icon: BookOpen },
-    { to: "/tutor?intent=path", label: "Learning paths", icon: Compass },
+    ...(user.role === "student" ? [{ to: "/tutor?intent=path", label: "Learning paths", icon: Compass }] : []),
     { to: "/tutor", label: "AI Tutor", icon: MessageCircle },
     ...(["admin", "instructor"].includes(user.role) ? [{ to: "/manage", label: user.role === "admin" ? "Manage platform" : "Manage courses", icon: user.role === "admin" ? Settings : BookOpen }] : []),
   ];

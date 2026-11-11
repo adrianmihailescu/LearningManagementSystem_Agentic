@@ -1,41 +1,75 @@
 import { BookOpen, Plus, Save, Users } from "lucide-react";
 import { useEffect, useState } from "react";
-import api from "../api.js";
-import { useAuth } from "../auth/AuthContext.jsx";
-import Notice from "../components/Notice.jsx";
+import type { FormEvent } from "react";
+import api, { getApiErrorMessage } from "../api";
+import { useCurrentUser } from "../auth/AuthContext";
+import Notice from "../components/Notice";
+import type {
+  Course,
+  CourseCreateInput,
+  CourseLevel,
+  CourseListResponse,
+  SubmissionRecord,
+  UserListResponse,
+  UserRecord,
+  UserRole,
+} from "../types";
 
-const initialForm = {
+interface ManageForm {
+  title: string;
+  description: string;
+  category: string;
+  level: CourseLevel;
+  tags: string;
+  moduleTitle: string;
+  lessonTitle: string;
+  lessonContent: string;
+  quizPrompt: string;
+  quizOptions: string;
+  quizAnswer: string;
+  quizExplanation: string;
+  assignmentTitle: string;
+  assignmentInstructions: string;
+}
+
+const initialForm: ManageForm = {
   title: "", description: "", category: "Data Science", level: "Beginner", tags: "",
   moduleTitle: "Getting started", lessonTitle: "", lessonContent: "",
   quizPrompt: "", quizOptions: "", quizAnswer: "1", quizExplanation: "",
   assignmentTitle: "", assignmentInstructions: "",
 };
+const courseLevels: Record<string, CourseLevel> = {
+  Beginner: "Beginner",
+  Intermediate: "Intermediate",
+  Advanced: "Advanced",
+};
 
 export default function Manage() {
-  const { user } = useAuth();
+  const user = useCurrentUser();
   const isAdmin = user.role === "admin";
-  const [courses, setCourses] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [submissions, setSubmissions] = useState([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [users, setUsers] = useState<UserRecord[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [submissions, setSubmissions] = useState<SubmissionRecord[]>([]);
   const [form, setForm] = useState(initialForm);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function load() {
     try {
-      const requests = [api.get("/courses/mine")];
-      if (isAdmin) requests.push(api.get("/users"));
-      const [courseResult, userResult] = await Promise.all(requests);
+      const [courseResult, userResult] = await Promise.all([
+        api.get<CourseListResponse>("/courses/mine"),
+        isAdmin ? api.get<UserListResponse>("/users") : Promise.resolve(null),
+      ]);
       setCourses(courseResult.data.courses);
       if (userResult) setUsers(userResult.data.users);
-    } catch (error) {
-      setNotice(error.response?.data?.error || "Could not load management data.");
+    } catch (error: unknown) {
+      setNotice(getApiErrorMessage(error, "Could not load management data."));
     }
   }
-  useEffect(() => { load(); }, [isAdmin]);
+  useEffect(() => { void load(); }, [isAdmin]);
 
-  async function createCourse(event) {
+  async function createCourse(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setNotice("");
@@ -51,7 +85,7 @@ export default function Manage() {
         title: form.assignmentTitle,
         instructions: form.assignmentInstructions,
       }] : [];
-      await api.post("/courses", {
+      const courseInput: CourseCreateInput = {
         title: form.title,
         description: form.description,
         category: form.category,
@@ -63,57 +97,63 @@ export default function Manage() {
           quiz,
           assignments,
         }],
-      });
+      };
+      await api.post("/courses", courseInput);
       setForm(initialForm);
       await load();
       setNotice("Your course is live in the catalog.");
-    } catch (error) {
-      setNotice(error.response?.data?.error || "Could not create the course.");
+    } catch (error: unknown) {
+      setNotice(getApiErrorMessage(error, "Could not create the course."));
     } finally { setBusy(false); }
   }
 
-  async function togglePublished(course) {
+  async function togglePublished(course: Course) {
     try {
       await api.put(`/courses/${course._id}`, { published: !course.published });
       await load();
       setNotice("");
-    } catch (error) {
-      setNotice(error.response?.data?.error || "Could not update course visibility.");
+    } catch (error: unknown) {
+      setNotice(getApiErrorMessage(error, "Could not update course visibility."));
     }
   }
 
-  async function updateRole(target, role) {
+  async function updateRole(target: UserRecord, role: UserRole) {
     try {
       await api.patch(`/users/${target._id}/role`, { role });
       setUsers((current) => current.map((item) => item._id === target._id ? { ...item, role } : item));
       setNotice("");
-    } catch (error) {
-      setNotice(error.response?.data?.error || "Could not update this account.");
+    } catch (error: unknown) {
+      setNotice(getApiErrorMessage(error, "Could not update this account."));
     }
   }
 
-  async function reviewCourse(course) {
+  async function reviewCourse(course: Course) {
     try {
-      const { data } = await api.get(`/courses/${course._id}/submissions`);
+      const { data } = await api.get<{ submissions: SubmissionRecord[] }>(`/courses/${course._id}/submissions`);
       setSelectedCourse(course);
       setSubmissions(data.submissions);
       setNotice("");
-    } catch (error) {
-      setNotice(error.response?.data?.error || "Could not load assignment submissions.");
+    } catch (error: unknown) {
+      setNotice(getApiErrorMessage(error, "Could not load assignment submissions."));
     }
   }
 
-  async function gradeSubmission(course, enrollment, submission, event) {
+  async function gradeSubmission(
+    course: Course,
+    enrollment: SubmissionRecord,
+    submission: SubmissionRecord["assignmentSubmissions"][number],
+    event: FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     try {
       await api.patch(`/courses/${course._id}/submissions/${enrollment.student._id}/${submission.assignmentId}`, {
         score: Number(formData.get("score")),
-        feedback: formData.get("feedback"),
+        feedback: String(formData.get("feedback") || ""),
       });
       await reviewCourse(course);
-    } catch (error) {
-      setNotice(error.response?.data?.error || "Could not save assignment feedback.");
+    } catch (error: unknown) {
+      setNotice(getApiErrorMessage(error, "Could not save assignment feedback."));
     }
   }
 
@@ -123,7 +163,7 @@ export default function Manage() {
       <form className="course-form" onSubmit={createCourse}>
         <label>Course title<input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} minLength={3} maxLength={160} required /></label>
         <label>Category<input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} maxLength={80} required /></label>
-        <label>Level<select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })}><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label>
+        <label>Level<select value={form.level} onChange={(e) => setForm({ ...form, level: courseLevels[e.target.value] })}><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></label>
         <label>Tags <span>(comma separated)</span><input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="Design, UX, Research" /></label>
         <label className="form-wide">Course description<textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} minLength={10} maxLength={3000} rows={3} required /></label>
         <div className="form-divider">YOUR FIRST MODULE & LESSON</div>
@@ -148,7 +188,7 @@ export default function Manage() {
       {submissions.length ? submissions.map((enrollment) => <div className="submission-student" key={enrollment._id}><strong>{enrollment.student.name} <span>{enrollment.student.email}</span></strong>{enrollment.assignmentSubmissions.map((submission) => <form className="submission-review" key={submission.assignmentId} onSubmit={(event) => gradeSubmission(selectedCourse, enrollment, submission, event)}><p>{submission.answer}</p><label>Score<input type="number" min="0" max="1000" name="score" defaultValue={submission.score ?? 0} required /></label><label>Feedback<input name="feedback" defaultValue={submission.feedback} maxLength={2000} /></label><button className="secondary-button">Save feedback</button></form>)}</div>) : <div className="manage-empty">No assignments have been submitted yet.</div>}
     </section>}
     {isAdmin && <section className="manage-panel"><div className="manage-panel-title"><div className="stat-icon orange"><Users size={18} /></div><div><h2>People and roles</h2><p>Give each person the access their work requires.</p></div></div>
-      <div className="management-list">{users.map((person) => <div className="management-row" key={person._id}><div className="avatar">{person.name.slice(0, 1).toUpperCase()}</div><div className="management-info"><strong>{person.name}</strong><span>{person.email}</span></div><select className="role-select" value={person.role} onChange={(event) => updateRole(person, event.target.value)}><option value="student">Student</option><option value="instructor">Instructor</option><option value="admin">Administrator</option></select></div>)}</div>
+      <div className="management-list">{users.map((person) => <div className="management-row" key={person._id}><div className="avatar">{person.name.slice(0, 1).toUpperCase()}</div><div className="management-info"><strong>{person.name}</strong><span>{person.email}</span></div><select className="role-select" value={person.role} onChange={(event) => { const role = event.target.value; if (role === "admin" || role === "instructor" || role === "student") void updateRole(person, role); }}><option value="student">Student</option><option value="instructor">Instructor</option><option value="admin">Administrator</option></select></div>)}</div>
     </section>}
   </div>;
 }

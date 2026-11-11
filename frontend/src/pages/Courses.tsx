@@ -1,34 +1,38 @@
 import { Search, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import api from "../api.js";
-import CourseCard from "../components/CourseCard.jsx";
-import Notice from "../components/Notice.jsx";
-import { useAuth } from "../auth/AuthContext.jsx";
+import api, { getApiErrorMessage } from "../api";
+import CourseCard from "../components/CourseCard";
+import Notice from "../components/Notice";
+import { useCurrentUser } from "../auth/AuthContext";
+import type { Course, CourseListResponse } from "../types";
 
-const categories = ["All courses", "Data Science", "Web Development", "Design", "Computer Science", "Cloud Computing"];
+const categories = ["All courses", "Data Science", "Web Development", "Design", "Computer Science", "Cloud Computing"] as const;
 export default function Courses() {
-  const { user } = useAuth();
-  const [courses, setCourses] = useState([]);
-  const [mine, setMine] = useState([]);
+  const user = useCurrentUser();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [mine, setMine] = useState<Course[]>([]);
   const [category, setCategory] = useState("All courses");
   const [search, setSearch] = useState("");
   const [notice, setNotice] = useState("");
   useEffect(() => {
-    Promise.all([api.get("/courses"), api.get("/courses/mine")])
+    Promise.all([
+      api.get<CourseListResponse>("/courses"),
+      api.get<CourseListResponse>("/courses/mine"),
+    ])
       .then(([all, own]) => { setCourses(all.data.courses); setMine(own.data.courses); })
-      .catch((error) => setNotice(error.response?.data?.error || "Could not load courses."));
+      .catch((error: unknown) => setNotice(getApiErrorMessage(error, "Could not load courses.")));
   }, []);
   const filtered = useMemo(() => courses.filter((course) =>
     (category === "All courses" || course.category === category)
     && `${course.title} ${course.description} ${course.tags?.join(" ")}`.toLowerCase().includes(search.toLowerCase())),
   [courses, category, search]);
-  async function enroll(course) {
+  async function enroll(course: Course) {
     try {
       await api.post(`/courses/${course._id}/enroll`);
-      const { data } = await api.get("/courses/mine");
+      const { data } = await api.get<CourseListResponse>("/courses/mine");
       setMine(data.courses);
       setNotice("");
-    } catch (error) { setNotice(error.response?.data?.error || "Could not enroll in this course."); }
+    } catch (error: unknown) { setNotice(getApiErrorMessage(error, "Could not enroll in this course.")); }
   }
   return <div className="catalog-page">
     <Notice message={notice} onClose={() => setNotice("")} />

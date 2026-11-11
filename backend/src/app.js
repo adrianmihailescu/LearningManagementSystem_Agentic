@@ -20,6 +20,7 @@ app.use("/api/ai", aiRoutes);
 app.use((req, res) => res.status(404).json({ error: `Route not found: ${req.method} ${req.path}` }));
 app.use((error, _req, res, _next) => {
   console.error(error);
+  if (error.name === "CastError") return res.status(400).json({ error: "An identifier in the request is invalid." });
   if (error.name === "ValidationError") return res.status(400).json({ error: error.message });
   if (error.code === 11000) return res.status(409).json({ error: "A record with that value already exists." });
   res.status(error.status || 500).json({ error: error.status ? error.message : "An unexpected server error occurred." });
